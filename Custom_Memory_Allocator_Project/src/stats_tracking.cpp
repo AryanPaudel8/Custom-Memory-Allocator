@@ -2,14 +2,7 @@
 #include <iostream>
 
 // initializing all the stats to zero
-StatsTracker::StatsTracker() {
-  stats = {
-      0,
-      0,
-      0,
-      0,
-  };
-}
+StatsTracker::StatsTracker() { stats = {0, 0, 0, 0, 0}; }
 // making constructors
 void StatsTracker::recordAllocation(size_t size) {
   stats.totalAllocations++;
@@ -24,7 +17,11 @@ void StatsTracker::recordAllocation(size_t size) {
 void StatsTracker::recordFree(size_t size) {
 
   stats.totalFrees++;
-  stats.currentMemoryUsage -= size;
+  if (size > stats.currentMemoryUsage) {
+    stats.currentMemoryUsage = 0;
+  } else {
+    stats.currentMemoryUsage -= size;
+  }
   //  stats.totalFreeMemory += size; // freeing memory adds free sapce
 }
 

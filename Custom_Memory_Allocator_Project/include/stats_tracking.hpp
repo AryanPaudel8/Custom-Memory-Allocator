@@ -15,7 +15,7 @@ struct AllocatorStats {
 
 class StatsTracker {
 public:
-  StatsTracker(); // constructor- starts tracking from zero
+  StatsTracker(); // constructor- starts tracking from 0
 
   void recordAllocation(size_t size); // call this when someone allocates
   void recordFree(size_t size);       // call this when someone frees

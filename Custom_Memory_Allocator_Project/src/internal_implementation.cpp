@@ -51,6 +51,21 @@ void *MemoryAllocator::allocate(size_t size) {
   // first-fit search: To find the first free block thats big enough
   while (current) {
     if (current->isFree && current->size >= size) {
+      size_t remaining = current->size - size;
+      if (remaining > sizeof(BlockHeader)) {
+        // creating new block after allocated portion
+        BlockHeader *newBlock =
+            (BlockHeader *)((char *)current + sizeof(BlockHeader) + size);
+        newBlock->size = remaining - sizeof(BlockHeader);
+        newBlock->isFree = true;
+        newBlock->next = current->next;
+        newBlock->prev = current;
+        if (current->next) {
+          current->next->prev = newBlock;
+        }
+        current->next = newBlock;
+        current->size = size;
+      }
       // Found a suitable block
       current->isFree = false; // Mark as used
 

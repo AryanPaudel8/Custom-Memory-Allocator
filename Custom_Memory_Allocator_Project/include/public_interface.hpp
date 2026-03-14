@@ -1,8 +1,8 @@
 #ifndef PUBLIC_INTERFACE_HPP
 #define PUBLIC_INTERFACE_HPP
 
+#include "../include/internal_structures.hpp"
 #include <cstddef> // this header gives us the standard c++ defn for size related typoes and constants in our case for (size_t).
-
 // Defining the functions that my allocator will do or call.
 
 class MemoryAllocator {
@@ -25,6 +25,9 @@ public:
 private:
   void *poolStart; // where our memory pool begins
   size_t poolSize; // How big our memory pool is
+
+  void
+  coalesce(BlockHeader *block); // internal helper for coalescing free blocks
 };
 
 #endif

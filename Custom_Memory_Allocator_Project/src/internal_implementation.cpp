@@ -19,7 +19,7 @@ MemoryAllocator::MemoryAllocator(size_t size) {
            0); // poolStart points to raw memory
   // checking if mmap failed
   if (poolStart == MAP_FAILED) {
-    std::cerr << "Allocation failed!!" << std::endl;
+    std::cerr << "Memory pool allocation failed!!" << std::endl;
     exit(1);
   }
 
@@ -70,6 +70,32 @@ void *MemoryAllocator::allocate(size_t size) {
   return nullptr; // if no suitable block found (allocation failed)
 }
 
+// Block Merging(coalescing)- to remove fragemntation
+void MemoryAllocator::coalesce(BlockHeader *block) {
+  // first: merging with next block
+  if (block->next && block->next->isFree) {
+    BlockHeader *next = block->next;
+    block->size += sizeof(BlockHeader) + next->size;
+    block->next = next->next;
+    if (next->next) {
+      next->next->prev = block;
+    }
+  }
+  // second merging with previous block
+  if (block->prev && block->prev->isFree) {
+    BlockHeader *prev = block->prev;
+    prev->size += sizeof(BlockHeader) + block->size;
+    prev->next = block->next;
+    if (block->next) {
+      block->next->prev = prev;
+    }
+    if (block == freeListHead) {
+      freeListHead = prev; // Block being merged was the first in list,
+                           // so update head to point to new merged block
+    }
+  }
+}
+
 // Free Logic
 void MemoryAllocator::freeMemory(void *ptr) {
   // Checking for safety : we can not free nullptr
@@ -88,6 +114,7 @@ void MemoryAllocator::freeMemory(void *ptr) {
   header->isFree = true;
   // recording this free in stats
   stats.recordFree(header->size);
+  coalesce(header);
 }
 
 // Destructor- Freeing the memory pool

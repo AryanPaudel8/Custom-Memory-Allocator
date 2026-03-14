@@ -78,6 +78,12 @@ void MemoryAllocator::freeMemory(void *ptr) {
   }
   // Finding the BlockHeader(it is right before the user's memory)
   BlockHeader *header = (BlockHeader *)((char *)ptr - sizeof(BlockHeader));
+
+  // double free detection
+  if (header->isFree) {
+    std::cerr << "Error Double free detection\n";
+    return;
+  }
   // Mark block as free
   header->isFree = true;
   // recording this free in stats

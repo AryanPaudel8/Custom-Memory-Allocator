@@ -4,7 +4,11 @@
 #include <cstddef>
 
 const size_t ALIGNMENT = 8; // all allocations will be multiples 8 bytes
-
+// Rounds up size to the nearest multiple of ALIGNMENT
+// Ensures all  memory stats at aligned address
+inline size_t alignSize(size_t size) {
+  return (size + (ALIGNMENT - 1)) & ~(ALIGNMENT - 1);
+}
 struct BlockHeader {
   size_t size; // the size of the block(excluding header)
   bool isFree; // Is this block free?
@@ -12,8 +16,5 @@ struct BlockHeader {
   BlockHeader *next; // Next block in the list
   BlockHeader *prev; // Previos block in the list
 };
-
-size_t alignSize(size_t size); // This function is for rounding up the size to
-                               // The nearest multiple of ALIGNMENT
 
 #endif

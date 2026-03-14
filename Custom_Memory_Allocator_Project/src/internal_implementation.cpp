@@ -6,17 +6,6 @@
 #include <iostream>
 #include <sys/mman.h>
 
-// Definition of alignSize
-size_t alignSize(size_t size) {
-  // Rounding up to the nearest multiple of ALIGNMENT
-  return (size + ALIGNMENT - 1) & ~(ALIGNMENT - 1);
-
-  // Simpler version
-  //  size_t remainder = size % ALIGNMENT;
-  // if (remainder == 0) return size;
-  // return size + (ALIGNMENT - remainder);
-}
-
 // These variables are only visible to this file as they are static
 static BlockHeader *freeListHead = nullptr; // pointer to the BlockHeader struct
 static StatsTracker stats;

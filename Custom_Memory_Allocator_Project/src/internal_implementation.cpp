@@ -127,3 +127,41 @@ MemoryAllocator::~MemoryAllocator() {
 void MemoryAllocator::printStats() {
   stats.printStats(); // calls StatsTracker function.
 }
+// Printing memory layout
+void MemoryAllocator::printMemoryLayout() {
+  BlockHeader *current = freeListHead;
+  int i = 0;
+  size_t totalFree = 0; // tracks total free memory
+  size_t totalUsed = 0; // tracks total used memoru
+
+  std::cout << "\n---New Memory Layout---\n";
+
+  while (current) {
+    std::cout << "Block " << i++ << "\n";
+    std::cout << "Size: " << current->size << "bytes\n";
+    std::cout << "Status: " << (current->isFree ? "Free" : "Used") << "\n";
+    std::cout << "Header Address: " << current << "\n";
+    std::cout << "Data adrr: "
+              << (void *)((char *)current + sizeof(BlockHeader)) << "\n";
+
+    if (current->isFree) {
+      totalFree += current->size;
+    } else {
+      totalUsed += current->size;
+    }
+    if (current->next) {
+      std::cout << " New block: " << current->next << "\n";
+    }
+    if (current->prev) {
+      std::cout << " Prev block: " << current->prev << "\n";
+    }
+    std::cout << "\n";
+    current = current->next;
+  }
+
+  std::cout << "Summary: " << std::endl;
+  std::cout << " Total blocks: " << i << "\n";
+  std::cout << " Used memory: " << totalUsed << "\n";
+  std::cout << "free memory: " << totalFree << "\n";
+  std::cout << "--------------------------------------------\n\n";
+}

@@ -21,6 +21,8 @@ public:
 
   // To print the statsics
   void printStats();
+  // to print the memroy layout
+  void printMemoryLayout();
 
 private:
   void *poolStart; // where our memory pool begins

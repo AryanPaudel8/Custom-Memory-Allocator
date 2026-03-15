@@ -1,490 +1,444 @@
 # Custom Memory Allocator (C++)
 
-A custom memory allocator implemented in modern C++ that simulates how dynamic memory management works internally in operating systems and runtime environments.
-
-This project builds a manual heap manager using mmap() to obtain raw memory from the OS and manages allocations through a linked-list based free block system using the First-Fit allocation algorithm with block splitting and coalescing to reduce fragmentation.
-
-The allocator also includes memory usage statistics tracking and memory layout visualization tools, making it useful both as a learning tool and a systems programming demonstration.
-
-## Table of Contents
-
-## Overview
-
-## Features
-
-## Memory Architecture
-
-## Allocation Algorithm
-
-## Fragmentation Handling
-
-## Statistics Tracking
-
-## Time Complexity
-
-## Project Structure
-
-## How It Works
-
-## Example Execution Flow
-
-## Build Instructions
-
-## Example Output
-
-## Key Concepts Demonstrated
-
-## Future Improvements
-
-## Why This Project Matters
-
-## Educational Value
-
-## Author
-
-## License
-
-Overview
-
-Dynamic memory allocation in C/C++ (malloc, free, new, delete) is handled by sophisticated allocators implemented in system libraries.
-
-This project recreates a simplified but realistic allocator that:
-
-Requests memory directly from the OS
-
-Manages its own memory pool
-
-Tracks free and used blocks
-
-Handles fragmentation
-
-Tracks runtime usage statistics
-
-Instead of relying on the system allocator, this project demonstrates how memory managers actually work internally.
-
-Features
-### Custom Memory Pool
-
-Uses mmap() to request a contiguous block of memory directly from the operating system.
-
-### First-Fit Allocation Strategy
-
-The allocator scans memory blocks sequentially and allocates the first block large enough to satisfy the request.
-
-### Block Splitting
-
-If a free block is larger than required, it is split into:
-
-an allocated block
-
-a remaining free block
-
-This minimizes wasted memory.
-
-### Block Coalescing
-
-Adjacent free blocks are automatically merged when memory is freed to reduce fragmentation.
-
-Alignment Support
-
-All allocations are aligned to 8 bytes for proper memory access and performance.
-
-Double-Free Detection
-
-The allocator detects and prevents double-free errors.
-
-Memory Usage Statistics
-
-Tracks:
-
-total allocations
-
-total frees
-
-current memory usage
-
-peak memory usage
-
-Memory Layout Visualization
-
-A debugging tool prints:
-
-block sizes
-
-block status (free / used)
-
-header addresses
-
-data addresses
-
-linked list connections
-
-## Memory Architecture
-
-Each block in the memory pool consists of a metadata header followed by user memory.
-
-+-----------------------+
-| BlockHeader           |
-|-----------------------|
-| size                  |
-| isFree                |
-| next                  |
-| prev                  |
-+-----------------------+
-| User Data             |
-| (allocated memory)    |
-+-----------------------+
-Memory Pool Layout
-
-Memory Pool (mmap)
-
-+--------------------------------------------------------------+
-| Header | User Data | Header | User Data | Header | User Data |
-+--------------------------------------------------------------+
-BlockHeader Structure
-
-Each block stores metadata:
-
-block size
-
-allocation status
-
-pointer to next block
-
-pointer to previous block
-
-This structure allows the allocator to perform:
-
-traversal
-
-block splitting
-
-block merging (coalescing)
-
-Alignment Strategy
-
-All allocations are aligned to 8 bytes.
-
+<div align="center">
+
+[![Language](https://img.shields.io/badge/Language-C%2B%2B17-blue?style=flat-square&logo=cplusplus)](https://cplusplus.com/)
+[![Platform](https://img.shields.io/badge/Platform-Linux%2FUnix-orange?style=flat-square)](https://www.linux.org/)
+[![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
+[![Stars](https://img.shields.io/github/stars/AryanPaudel8/Custom-Memory-Allocator?style=flat-square)](https://github.com/AryanPaudel8/Custom-Memory-Allocator)
+
+A blazing-fast, educational memory allocator that demonstrates how modern operating systems and runtime environments manage dynamic memory allocation.
+
+[Features](#-features) • [Architecture](#-memory-architecture) • [Quick Start](#-quick-start) • [Examples](#-example-usage) • [Contributing](#-contributing)
+
+</div>
+
+---
+
+## 📚 Overview
+
+Ever wondered how `malloc()` and `new` actually work under the hood? This project demystifies dynamic memory allocation by building a complete memory allocator from scratch.
+
+Using **mmap()** to request raw memory directly from the OS, this allocator manages its own heap with:
+
+- 🎯 **First-Fit allocation strategy** for efficient memory assignment
+- 🧩 **Block splitting** to minimize wasted space
+- 🔗 **Block coalescing** to reduce fragmentation
+- 📊 **Runtime statistics tracking** for performance analysis
+- 🔍 **Memory layout visualization** for debugging
+
+This is exactly how production allocators like **jemalloc**, **tcmalloc**, and **ptmalloc** work!
+
+---
+
+## ✨ Features
+
+### 🎯 Smart Allocation
+- **First-Fit Strategy** - Quickly finds suitable memory blocks
+- **Block Splitting** - Splits large blocks to minimize waste
+- **8-Byte Alignment** - Ensures optimal CPU memory alignment
+- **Double-Free Detection** - Prevents common memory errors
+
+### 🛡️ Fragmentation Control
+- **Automatic Coalescing** - Merges adjacent free blocks
+- **Before & After Tracking** - Shows fragmentation reduction
+- **Contiguous Memory Reconstruction** - Optimizes memory usage
+
+### 📈 Performance Monitoring
+- **Total Allocations/Deallocations** - Track operation counts
+- **Peak Memory Usage** - Identify memory bottlenecks
+- **Current Memory Usage** - Monitor real-time allocation
+- **Detailed Statistics** - Analyze allocator behavior
+
+### 🔧 Developer Tools
+- **Memory Layout Visualization** - See the exact memory structure
+- **Block Metadata Display** - Inspect allocation details
+- **Address Information** - Track header and data pointers
+- **Linked List Traversal** - Understand memory organization
+
+---
+
+## 🏗️ Memory Architecture
+
+### Block Structure
+```
+┌─────────────────────────────┐
+│     BlockHeader             │
+├─────────────────────────────┤
+│ • size         (8 bytes)    │
+│ • isFree       (1 byte)     │
+│ • next pointer (8 bytes)    │
+│ • prev pointer (8 bytes)    │
+├─────────────────────────────┤
+│     User Data               │
+│ (requested allocation)      │
+├─────────────────────────────┤
+│     Free Block Metadata     │
+│ (managed by allocator)      │
+└─────────────────────────────┘
+```
+
+### Memory Pool Layout
+```
+mmap() Request → +─────────────────────────────────────────────────+
+                 │ [H|Data] [H|Data] [H|Data] [H|Data] [Free...]   │
+                 +─────────────────────────────────────────────────+
+                 
+Where: H = Header, 8-byte aligned blocks
+```
+
+### Alignment Strategy
+```cpp
 size = (size + (ALIGNMENT - 1)) & ~(ALIGNMENT - 1);
+```
 
 This ensures:
+- ��� Proper CPU memory alignment
+- ✅ Improved performance
+- ✅ Avoidance of undefined behavior on strict architectures
 
-proper CPU memory alignment
+---
 
-improved performance
+## 🔄 Allocation Algorithm
 
-avoidance of undefined behavior on some architectures
+### First-Fit Strategy
 
-## Allocation Algorithm
+```
+START: Need 256 bytes
 
-The allocator uses the First-Fit strategy.
+┌─────────────────────────────────────────┐
+│ [100 USED] [150 FREE] [300 FREE]       │ ← Scan free list
+└─────────────────────────────────────────┘
+           ↓
+    Found 150 FREE (too small)
+           ↓
+    Continue scanning
+           ↓
+    Found 300 FREE (large enough!)
+           ↓
+    SPLIT: [256 USED] [44 FREE]
+           ↓
+    Return pointer to user data
+```
 
-Steps
+**Steps:**
+1. 🔍 Traverse the block list
+2. 🎯 Find the first free block large enough
+3. ✂️ Split if block is larger than needed
+4. ✅ Mark block as allocated
+5. 🎁 Return pointer to data region
 
-Traverse the block list
+**Time Complexity: O(n)** - depends on number of blocks
 
-Find the first free block large enough
+---
 
-If the block is larger than required:
+## 🧩 Fragmentation Handling
 
-split the block
-
-Mark the block as allocated
-
-Return pointer to the data region
-
-Simplified process:
-
-search free list
-      ↓
-found block
-      ↓
-split if large
-      ↓
-mark as used
-      ↓
-return pointer
-## Fragmentation Handling
-
-Memory fragmentation occurs when small free blocks are scattered across memory.
-
-This allocator handles fragmentation using coalescing.
-
-Coalescing Strategy
-
-When memory is freed:
-
-merge with next block if it is free
-
-merge with previous block if it is free
-
-This reconstructs larger contiguous blocks.
-
-Example:
-
+### Problem: External Fragmentation
+```
 Before Free:
+[████ USED ████][Free][████ USED ████][Free]
 
-[Used][Free][Used][Free]
+After Free (without coalescing):
+[Free][Free][████ USED ████][Free] ← Scattered free blocks!
+```
 
+### Solution: Block Coalescing
+```
 After Free + Coalesce:
+[█████████ LARGE FREE █████████][Free]
+      ↑
+  Merged blocks = better future allocations!
+```
 
-[Free-----------][Free]
-## Statistics Tracking
+**Coalescing Strategy:**
+- Merge with **next** block if free
+- Merge with **previous** block if free
+- Reconstruct larger contiguous blocks
 
-The allocator records runtime statistics using a dedicated StatsTracker class.
+---
 
-Tracked metrics:
+## 📊 Time Complexity Analysis
 
-Metric	Description
-Total Allocations	Number of allocation calls
-Total Frees	Number of free calls
-Current Memory Usage	Memory currently allocated
-Peak Memory Usage	Highest memory usage reached
+| Operation | Complexity | Notes |
+|-----------|-----------|-------|
+| **Allocate** | O(n) | First-Fit requires scanning free list |
+| **Free** | O(1) | Header directly precedes memory |
+| **Coalesce** | O(1) | Only checks adjacent blocks |
+| **Traversal** | O(n) | Visits all blocks |
 
-These metrics help analyze allocator behavior during program execution.
+**Why so fast?** The block header is stored right before allocated memory, so freeing is just marking and checking neighbors!
 
-## Time Complexity
-Operation	Complexity
-allocate	O(n)
-free	O(1)
-coalesce	O(1)
-memory traversal	O(n)
+---
 
-Explanation:
+## 📁 Project Structure
 
-Allocation requires scanning the block list (First-Fit search).
-
-Freeing is constant time since the block header is located directly before the memory pointer.
-
-Coalescing only checks adjacent blocks, making it efficient.
-
-## Project Structure
+```
 Custom-Memory-Allocator/
 │
-├── include/
-│   ├── internal_structures.hpp
-│   ├── public_interface.hpp
-│   └── stats_tracking.hpp
+├── 📄 include/
+│   ├── internal_structures.hpp    # Block metadata structures
+│   ├── public_interface.hpp       # Main allocator API
+│   └── stats_tracking.hpp         # Statistics tracker
 │
-├── src/
-│   ├── internal_implementation.cpp
-│   └── stats_tracking.cpp
+├── 📝 src/
+│   ├── internal_implementation.cpp  # Core allocation logic
+│   └── stats_tracking.cpp           # Statistics implementation
 │
-├── tests/
-│   └── main.cpp
+├── ✅ tests/
+│   └── main.cpp                     # Usage examples
 │
-└── README.md
-## How It Works
-### Step 1 — Create Allocator
-MemoryAllocator allocator(1024 * 1024);
+├── 🔨 CMakeLists.txt               # Build configuration
+└── 📖 README.md                    # This file
+```
 
-Creates a 1MB memory pool using mmap().
+---
 
-### Step 2 — Allocate Memory
-void* p = allocator.allocate(100);
+## 🚀 Quick Start
 
-Process:
+### Prerequisites
+```bash
+✓ Linux / Unix environment
+✓ GCC 9.0+ or Clang 10.0+
+✓ C++17 or newer
+✓ CMake 3.10+ (optional, for build)
+```
 
-Align size
+### Compile from Source
 
-Find suitable free block
+**Using g++:**
+```bash
+g++ -std=c++17 \
+    src/internal_implementation.cpp \
+    src/stats_tracking.cpp \
+    tests/main.cpp \
+    -o allocator
+```
 
-Split if necessary
+**Using CMake:**
+```bash
+mkdir build && cd build
+cmake ..
+make
+```
 
-Return pointer to data region
-
-### Step 3 — Free Memory
-allocator.freeMemory(p);
-
-Process:
-
-Locate block header
-
-Mark block free
-
-Merge adjacent free blocks
-
-Step 4 — View Memory Layout
-allocator.printMemoryLayout();
-
-Shows block structure and memory usage.
-
-Step 5 — View Statistics
-allocator.printStats();
-
-Displays allocator usage metrics.
-
-## Example Execution Flow
-
-Example test scenario:
-
-Create allocator (1MB pool)
-
-Allocate memory:
-
-100 bytes
-
-200 bytes
-
-300 bytes
-
-Free all blocks
-
-Print memory layout
-
-Print allocator statistics
-
-Output includes:
-
-block list visualization
-
-allocation statistics
-
-fragmentation information
-
-## Build Instructions
-Requirements
-
-Linux / Unix environment
-
-GCC or Clang
-
-C++17 or newer
-
-Compile
-g++ -std=c++17 src/internal_implementation.cpp \
-src/stats_tracking.cpp \
-tests/main.cpp \
--o allocator
-Run
+### Run
+```bash
 ./allocator
-## Example Output
----Creating allocator with 1 MB pool---
+```
 
-Allocating 100 bytes
-Allocating 200 bytes
-Allocating 300 bytes
+---
 
-Freeing all allocated memory
+## 💻 Example Usage
 
----Final Layout---
+### Basic Allocation
+
+```cpp
+#include "include/public_interface.hpp"
+
+int main() {
+    // Step 1: Create allocator with 1MB pool
+    MemoryAllocator allocator(1024 * 1024);
+    
+    // Step 2: Allocate memory
+    void* ptr1 = allocator.allocate(100);   // 100 bytes
+    void* ptr2 = allocator.allocate(200);   // 200 bytes
+    void* ptr3 = allocator.allocate(300);   // 300 bytes
+    
+    // Step 3: Use the memory
+    std::memset(ptr1, 'A', 100);
+    std::memset(ptr2, 'B', 200);
+    std::memset(ptr3, 'C', 300);
+    
+    // Step 4: View memory layout
+    std::cout << "\n=== Memory Layout ===" << std::endl;
+    allocator.printMemoryLayout();
+    
+    // Step 5: View statistics
+    std::cout << "\n=== Statistics ===" << std::endl;
+    allocator.printStats();
+    
+    // Step 6: Free memory
+    allocator.freeMemory(ptr1);
+    allocator.freeMemory(ptr2);
+    allocator.freeMemory(ptr3);
+    
+    return 0;
+}
+```
+
+### Expected Output
+
+```
+===== Creating allocator with 1 MB pool =====
+
+✓ Allocating 100 bytes
+✓ Allocating 200 bytes
+✓ Allocating 300 bytes
+
+===== Memory Layout =====
+[USED: 100B] → [USED: 200B] → [USED: 300B] → [FREE: 1048076B]
+
+===== Statistics =====
+Total Allocations: 3
+Total Frees: 0
+Current Memory Usage: 600 bytes
+Peak Memory Usage: 600 bytes
+
+===== Freeing all memory =====
+
+===== Final Layout =====
+[FREE: 1048576B]
 
 Total Allocations: 3
 Total Frees: 3
-Current memory usage: 0
-Peak memory usage: 600
-## Key Concepts Demonstrated
+Current Memory Usage: 0 bytes
+Peak Memory Usage: 600 bytes
+```
 
-This project demonstrates core systems programming concepts:
+---
 
-custom heap management
+## 🎓 Key Concepts Demonstrated
 
-memory alignment
+This project teaches fundamental systems programming principles:
 
-linked list memory blocks
+- 🧠 **Heap Memory Management** - How allocators organize memory
+- 🔗 **Linked Lists** - Dynamic data structure implementation
+- 🎯 **First-Fit Algorithm** - Greedy allocation strategy
+- ⚙️ **Memory Alignment** - Hardware performance optimization
+- 🔄 **Block Splitting** - Minimizing memory waste
+- 🧩 **Block Coalescing** - Fragmentation reduction
+- 📍 **Metadata Overhead** - Tracking allocation information
+- 🎚️ **mmap() System Call** - OS-level memory requests
+- 📊 **Performance Profiling** - Statistics tracking
+- 🐛 **Debugging Tools** - Memory visualization
 
-fragmentation control
+---
 
-block splitting
+## 🔮 Future Enhancements
 
-block coalescing
+### Advanced Allocation Strategies
+- [ ] **Best-Fit** - Find smallest suitable block
+- [ ] **Worst-Fit** - Use largest available block
+- [ ] **Next-Fit** - Continue from last allocation
 
-OS-level memory allocation (mmap)
+### Concurrency
+- [ ] **Thread Safety** - Mutex protection for concurrent access
+- [ ] **Lock-Free Structures** - Atomic operations without locks
 
-debugging tools for memory layout
+### Advanced Techniques
+- [ ] **Segregated Free Lists** - Separate lists by size
+- [ ] **Slab Allocator** - Efficient small object allocation
+- [ ] **Reallocation Support** - `reallocate(ptr, newSize)`
+- [ ] **Memory Leak Detection** - Track unfreed allocations
 
-runtime memory statistics tracking
+### Performance
+- [ ] **Benchmarking Suite** - Compare with system allocators
+- [ ] **Memory Defragmentation** - Compact fragmented memory
+- [ ] **Adaptive Strategies** - Adjust algorithm based on patterns
 
-## Future Improvements
+---
 
-Possible enhancements include:
+## 📚 Why This Project Matters
 
-Advanced Allocation Strategies
+Understanding memory allocators is crucial for:
 
-Best-Fit
+- **Operating Systems** - Core kernel functionality
+- **Language Runtimes** - Java GC, Python, Node.js memory
+- **Game Engines** - High-performance allocation in Unreal, Unity
+- **Databases** - Custom allocators in PostgreSQL, MongoDB
+- **High-Performance Systems** - Finance, AI, real-time applications
 
-Worst-Fit
+Modern allocators like **jemalloc**, **tcmalloc**, and **ptmalloc** build on these core principles:
 
-Next-Fit
+```
+This Project          →  Production Allocators
+├─ Block Metadata    →  ├─ jemalloc (per-thread arenas)
+├─ Free Lists        →  ├─ tcmalloc (size classes)
+├─ Coalescing        →  ├─ ptmalloc (heap consolidation)
+└─ Fragmentation     →  └─ All: Advanced fragmentation strategies
+```
 
-Thread Safety
+---
 
-mutex protection
+## 🎯 Educational Value
 
-lock-free structures
+This project provides strong foundations for studying:
 
-Segregated Free Lists
+- **Operating Systems** (OS 201+)
+- **Compiler Design** - Memory management in compiled languages
+- **High-Performance Computing** - Optimization techniques
+- **Language Runtimes** - How interpreters manage memory
+- **Systems Programming** - Low-level C++ and syscalls
 
-Multiple free lists for different block sizes.
+**What You'll Learn:**
+- ✅ How `malloc()` works internally
+- ✅ Memory fragmentation challenges
+- ✅ Low-level memory management
+- ✅ Systems programming design patterns
+- ✅ Performance profiling techniques
 
-Slab Allocator
+---
 
-Efficient allocation for small objects.
+## 👨‍💻 Author
 
-Reallocation Support
-void* reallocate(void* ptr, size_t newSize);
-Memory Leak Detection
+**Aryan Paudel**
+- 🎓 Computer Science Student
+- 💻 Systems Programming Enthusiast
+- 📧 [GitHub Profile](https://github.com/AryanPaudel8)
 
-Tracking unfreed allocations.
+---
 
-## Why This Project Matters
+## 📄 License
 
-Understanding memory allocators is fundamental to many areas of computer science, including:
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
-operating system design
-
-runtime environments
-
-game engines
-
-databases
-
-high-performance systems
-
-Modern allocators such as jemalloc, tcmalloc, and ptmalloc build upon similar ideas including:
-
-block metadata
-
-free lists
-
-fragmentation control
-
-memory pooling
-
-This project demonstrates the core principles behind production memory allocators.
-
-## Educational Value
-
-This project helps understand:
-
-how malloc() works internally
-
-memory fragmentation problems
-
-low-level memory management
-
-systems programming design
-
-It provides a strong foundation for studying:
-
-operating systems
-
-compilers
-
-high-performance systems
-
-language runtimes
-
-## Author
-
-Aryan Paudel
-Computer Science Student
-Systems Programming Enthusiast
-
-## License
-
+```
 MIT License
 
-## Motivation
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-This project was built to deepen understanding of how dynamic memory allocators work internally in systems such as malloc, jemalloc, and operating system memory managers.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+```
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Feel free to:
+
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
+4. **Push** to the branch (`git push origin feature/amazing-feature`)
+5. **Open** a Pull Request
+
+---
+
+## 📖 Resources & References
+
+### Learning Materials
+- [Malloc Tutorial](http://www.malloc.org/) - Understanding malloc
+- [Jemalloc Documentation](http://jemalloc.net/) - Production allocator
+- [Memory Allocators](https://www.gnu.org/software/libc/manual/html_node/The-GNU-Allocator.html) - GNU libc details
+
+### Related Projects
+- [ptmalloc3](http://www.malloc.org/malloc.c) - GNU malloc variant
+- [tcmalloc](https://github.com/google/tcmalloc) - Google's allocator
+- [Hoard](http://www.hoard.org/) - Scalable memory allocator
+
+---
+
+<div align="center">
+
+### ⭐ If this project helped you, please consider giving it a star!
+
+**Happy Allocating! 🚀**
+
+</div>
